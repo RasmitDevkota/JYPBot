@@ -9,7 +9,6 @@ const port = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-const fs = require('fs');
 const cron = require('node-cron');
 const { createCanvas, loadImage } = require('canvas');
 
@@ -71,7 +70,6 @@ admin.initializeApp({
 
 let db = admin.firestore();
 
-/////
 const helpEmbed = {
 	color: 0x019be7,
 	title: "JYP Commands",
@@ -88,8 +86,8 @@ const helpEmbed = {
 			value: "Sends information about JYP Bot"
 		},
 		{
-			name: "jyp suggest <suggestion>",
-			value: "Make a suggestion to the developer by replacing <suggestion> with your thoughts (you don't need the `<>`)"
+			name: "jyp message <message>",
+			value: "Write a question or suggestion to the developer by replacing <message> with your message (you don't need the `<>`, your entire message is sent to a log)"
 		},
 		{
 			name: "jyp invite",
@@ -101,7 +99,7 @@ const helpEmbed = {
 		},
 		{
 			name: "jyp simp",
-			value: "Simp for an idol! Note: If you've used WonyoungBot, your simp data will be transferred from that bot."
+			value: "Simp for someone! Note: If you've used WonyoungBot, your simp data will be transferred from that bot"
 		},
 		{
 			name: "More",
@@ -119,33 +117,38 @@ const aboutEmbed = {
 	fields: [
 		{
 			name: "Who?",
-			value: "JYP Bot was made by Rasmit#3525, who also works on other bots and applications: https://rasmit.web.app/",
+			value: "JYP Bot was made by Rasmit#3525, who also works on other bots and applications: https://rasmit.web.app.",
 			inline: true
 		},
 		{
 			name: "What?",
-			value: "JYP Bot is a mostly-fun bot made to act like a normal person with some memey commands",
+			value: "JYP Bot is a mostly-fun bot made to act like a normal person with some memey commands.",
 			inline: true
 		},
 		{
 			name: "When?",
-			value: "JYP Bot was made on June 10, 2021",
+			value: "JYP Bot was made on June 10, 2021.",
 			inline: true
 		},
 		{
 			name: "Where?",
-			value: "JYP Bot is stored at https://github.com/DrAlienTech/JYPBot, hosted at https://JYPBot.dralientech.repl.co, and kept alive using uptimerobot.com",
+			value: "JYP Bot is stored at https://github.com/DrAlienTech/JYPBot, hosted at https://JYPBot.dralientech.repl.co, and kept alive using https://uptimerobot.com.",
 			inline: true
 		},
 		{
 			name: "How?",
-			value: "JYP Bot is written in Javascript through Node.js using the discord.js library",
+			value: "JYP Bot is written in Javascript through Node.js using the discord.js library.",
 			inline: true
 		},
 		{
 			name: "Why?",
-			value: "Why not?",
+			value: "While memeing around with some people about JYP, we came up with the silly idea of a JYP Discord bot, and now here it is!",
 			inline: true
+		},
+		{
+			name: "Can I help?",
+			value: "You can make suggestions, open a pull request on the GitHub repo, or you can help the bot grow by adding it to more servers!\n\nEven better, you can use the bot properly and make sure not to break it so that the bot doesn't crash and other users don't lose time with JYP! :)",
+			inline: false
 		},
 	]
 };
@@ -154,11 +157,7 @@ client.on("ready", function () {
 	client.user.setActivity("Alcohol-Free", { type: "Playing" });
 });
 
-client.login(botToken).then(function () {
-	client.guilds.cache.forEach(guild => {
-		console.log(`${guild.name} | ${guild.id}`);
-	});
-});
+client.login(botToken).then(() => {});
 
 client.on("message", msg => {
 	if (msg.author.id == client.user.id) {
@@ -170,7 +169,7 @@ client.on("message", msg => {
 	const lmsg = msg.content.toLowerCase().toString();
 
 	if (lmsg.includes("jyp suggest")) {
-		// Code to send suggestion (confidential)
+		client.users.cache.get("377934017548386307").send("Message\nSender: <@" + msg.author.id + ">\nChannel: <#" + msg.channel.id + ">\nContent:```\n" + msg.content + "\n```);
 		
 		msg.channel.send("Suggestion sent!");
 	} else if ((lmsg.includes("hey ") || lmsg.includes("hi ")) && lmsg.includes("jyp")) {
