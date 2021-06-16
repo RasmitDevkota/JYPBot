@@ -7,10 +7,71 @@ const app = express();
 const path = require("path");
 const port = process.env.PORT || 3000;
 
+app.use(express.static(path.join(__dirname, 'public')));
+
 const fs = require('fs');
+const cron = require('node-cron');
+const { createCanvas, loadImage } = require('canvas');
+
+const firebase = require("firebase");
+
+function simpStatus(simpCount, name, pronoun) {
+	if (simpCount == 0) {
+		return "You are an innocent little child and have not simped yet. What will your next move be?";
+	} else if (simpCount < 10) {
+		return "Welcome to the world of simping! You still have a long way to go before you achieve anything, though.";
+	} else if (simpCount < 50) {
+		return "You're not joking around, and your bias is starting to notice you!";
+	} else if (simpCount < 75) {
+		if (pronoun == "he") {
+			return "Oh, look! He's walking over to you. Well, I'll leave you two to it now, have fun!";
+		} else if (pronoun == "she") {
+			return "Oh, look! She's walking over to you. Well, I'll leave you two to it now, have fun!";
+		} else {
+			return "Oh, look! They're walking over to you. Well, I'll leave you two to it now, have fun!";
+		}
+	} else if (simpCount < 100) {
+		return "\"OMG Hi " + name + " wanna go out for dinner tonight?\"";
+	} else if (simpCount < 500) {
+		return "\"My parents aren't home—if you know what I mean :flushed:\"";
+	} else if (simpCount < 750) {
+		return "\"Have you seen the new movie that came out? Uh, wanna go watch it together maybe?\"";
+	} else if (simpCount < 1000) {
+		if (pronoun == "he") {
+			return "\"Noona, I got you tickets to my concert! Won't you come watch me perform on stage?\"";
+		} else if (pronoun == "she") {
+			return "\"Oppa, I got you tickets to my concert! Won't you come watch me perform on stage?\"";
+		} else {
+			return "\"Hey, I got you tickets to my concert! Won't you come watch me perform on stage?\"";
+		}
+	} else if (simpCount < 2500) {
+		return "\"Uh oh, people found out we're dating!\"";
+	} else if (simpCount < 5000) {
+		return "\"Oh no, my parents said they want to meet you...\"";
+	} else if (simpCount < 7500) {
+		return "\"It's summer! Wanna go to the beach together?\"";
+	} else if (simpCount < 10000) {
+		return "\"W-W-Will you marry me?\"";
+	} else {
+		return "GG WP. You died from simpomania.";
+	}
+}
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+firebase.initializeApp(firebaseConfig);
+
+var admin = require("firebase-admin");
+var serviceAccount = require("./firebase-admin-key.json");
+
+admin.initializeApp({
+	credential: admin.credential.cert(serviceAccount),
+	databaseURL: "https://firebase-project.firebaseio.com"
+});
+
+let db = admin.firestore();
+
+/////
 const helpEmbed = {
 	color: 0x019be7,
 	title: "JYP Commands",
@@ -28,7 +89,7 @@ const helpEmbed = {
 		},
 		{
 			name: "jyp suggest <suggestion>",
-			value: "Make a suggestion to the developer by replacing `<suggestion>` with your thoughts"
+			value: "Make a suggestion to the developer by replacing <suggestion> with your thoughts (you don't need the `<>`)"
 		},
 		{
 			name: "jyp invite",
@@ -39,11 +100,14 @@ const helpEmbed = {
 			value: "Whispers the iconic 'JYP'"
 		},
 		{
+			name: "jyp simp",
+			value: "Simp for an idol! Note: If you've used WonyoungBot, your simp data will be transferred from that bot."
+		},
+		{
 			name: "More",
 			value: "Coming soon..."
 		}
-	],
-	footer: "Bot made by Rasmit#2525"
+	]
 };
 
 const aboutEmbed = {
@@ -55,7 +119,7 @@ const aboutEmbed = {
 	fields: [
 		{
 			name: "Who?",
-			value: "JYP Bot was made by Rasmit#3525, who also works on other bots and applications",
+			value: "JYP Bot was made by Rasmit#3525, who also works on other bots and applications: https://rasmit.web.app/",
 			inline: true
 		},
 		{
@@ -70,12 +134,12 @@ const aboutEmbed = {
 		},
 		{
 			name: "Where?",
-			value: "JYP Bot is stored on https://github.com/DrAlienTech/JYPBot, hosted on https://JYPBot.dralientech.repl.co, and kept alive using uptimerobot.com",
+			value: "JYP Bot is stored at https://github.com/DrAlienTech/JYPBot, hosted at https://JYPBot.dralientech.repl.co, and kept alive using uptimerobot.com",
 			inline: true
 		},
 		{
 			name: "How?",
-			value: "JYP Bot is written in Node.js using the discord.js library",
+			value: "JYP Bot is written in Javascript through Node.js using the discord.js library",
 			inline: true
 		},
 		{
@@ -83,33 +147,33 @@ const aboutEmbed = {
 			value: "Why not?",
 			inline: true
 		},
-	],
-	footer: "Send suggestions/questions to Rasmit#2525"
+	]
 };
 
 client.on("ready", function () {
 	client.user.setActivity("Alcohol-Free", { type: "Playing" });
 });
 
-client.login().then(function () {
+client.login(botToken).then(function () {
 	client.guilds.cache.forEach(guild => {
 		console.log(`${guild.name} | ${guild.id}`);
 	});
 });
 
 client.on("message", msg => {
-	if (msg.author.id == "692190221986693190") {
+	if (msg.author.id == client.user.id) {
 		return;
 	}
 
-	const args = msg.content.split(' ');
-	const command = args.shift().toLowerCase();
+	// Messages
 
 	const lmsg = msg.content.toLowerCase().toString();
 
-	// Messages
-
-	if ((lmsg.includes("hey") || lmsg.includes("hi")) && lmsg.includes("jyp")) {
+	if (lmsg.includes("jyp suggest")) {
+		// Code to send suggestion (confidential)
+		
+		msg.channel.send("Suggestion sent!");
+	} else if ((lmsg.includes("hey ") || lmsg.includes("hi ")) && lmsg.includes("jyp")) {
 		msg.channel.send("hey " + msg.author.username);
 	} else if (lmsg.includes("ily") && lmsg.includes("jyp")) {
 		msg.channel.send("ily " + msg.author.username, { files: ["jypily.png"] });
@@ -144,25 +208,311 @@ client.on("message", msg => {
 
 	// Commands
 
-	switch (lmsg) {
-		// Main Commands
-		case "jyp help":
-			msg.channel.send({ embed: helpEmbed });
-			break;
-		case "jyp about":
-			msg.channel.send({ embed: aboutEmbed })
-			break;
-		case "jyp suggest":
-			client.users.cache.get("377934017548386307").send("Suggestion '" + msg.content + "' made in " + msg.channel.id + " made by <@" + msg.author.id + ">");
-			break;
-		case "jyp invite":
-			msg.channel.send(`Add JYP Bot to your server using this link: https://discord.com/api/oauth2/authorize?client_id=852575304361967616&permissions=8&scope=bot`);
-			break;
+	if (lmsg.startsWith("jyp")) {
+		const args = msg.content.split(' ');
+		const command = args.shift().toLowerCase();
 
-		// Fun commands
-		case "jyp whisper":
-			msg.channel.send("J Y P");
-			break;
+		switch (args[0]) {
+			// Main Commands
+			case "help":
+				msg.channel.send({ embed: helpEmbed });
+				break;
+			case "about":
+				msg.channel.send({ embed: aboutEmbed })
+				break;
+			case "invite":
+				msg.channel.send("Add JYP Bot to your server using this invite link:");
+				msg.channel.send("https://discord.com/api/oauth2/authorize?client_id=852575304361967616&permissions=8&scope=bot");
+				break;
+
+			// Fun commands
+			case "whisper":
+				msg.channel.send("J Y P");
+				break;
+			case "simp":
+				args.shift();
+
+				const userDoc = db.collection('users').doc(msg.author.id);
+
+				const items = [
+					["Chocolate", "I'm sure your they'll absolutely love some yummy chocolate!", 5],
+					["Roses", "Buy them a bouquet of roses to make them fall in love with you!", 10],
+					["Ice Cream", "Let them know how sweet they are by giving them some sweet ice cream!", 25],
+					["Perfume", "Get yourself some fresh perfume to smell nice in front of them.", 50],
+					["Car", "What a better way to take someone out on a date than to drive them?", 1000],
+					["House", "Buy yourselves a nice house to live in and spend time together.", 500000],
+					["$1,000,000", "You're not a simp if you're not casually giving them a million dollars.", 1000000],
+				];
+
+				const itemNames = ["chocolate", "roses", "ice cream", "perfume", "car", "house", "$1,000,000"];
+
+				userDoc.get().then(function (doc) {
+					var idolName = "";
+					var imageUrl = ""
+					var simpCount = 0;
+					var pronoun = "they";
+
+					if (args.length == 1) {
+						if (args[0] == "stats") {
+							if (!doc.exists) {
+								return msg.reply("You have not simped for anyone yet! To begin the simping journey, run the !simp command with the following parameters (ignore the <>):\n" +
+									"`!simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
+							} else {
+								idolName = doc.data().simpIdolName || "";
+
+								if (idolName == "") {
+									return msg.reply("You have not simped for anyone yet! To begin the simping journey, run the !simp command with the following parameters (ignore the <>):\n" +
+										"`!simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
+								}
+
+								imageUrl = doc.data().simpImageUrl || "";
+								simpCount = doc.data().simpCount || 0;
+								pronoun = doc.data().simpPronoun || "they";
+
+								const simpEmbed = {
+									color: 0xd9598c,
+									title: "Ha, look at this simp!",
+									thumbnail: {
+										url: imageUrl,
+									},
+									fields: [
+										{
+											name: "Idol Name",
+											value: idolName,
+											inline: true
+										},
+										{
+											name: "Simp Count",
+											value: simpCount,
+											inline: true
+										},
+										{
+											name: "Status",
+											value: simpStatus(simpCount, msg.author.username, pronoun),
+											inline: true
+										}
+									]
+								};
+
+								msg.channel.send({ embed: simpEmbed });
+							}
+						} else if (args[0] == "shop") {
+							const shopEmbed = {
+								color: 0xd9598c,
+								title: "Simp-Mart",
+								fields: []
+							};
+
+							for (item of items) {
+								shopEmbed.fields.push({
+									name: item[0],
+									value: item[1] + "\nPrice: " + item[2].toString() + " simps"
+								});
+							}
+
+							msg.channel.send({ embed: shopEmbed });
+						} else if (args[0] == "inventory") {
+							var inventory = doc.data().simpInventory;
+
+							if (!inventory) {
+								msg.channel.send("Sorry, you don't own anything! Use `!simp shop` to see what you can buy and `!simp buy` to buy an item!");
+							} else {
+								msg.channel.send("Your Inventory: " + inventory.join(", "));
+							}
+						} else if (args[0] == "leaderboard" || args[0] == "lb") {
+							db.collection("users").where("simpCount", ">", 0).get().then((querySnapshot) => {
+								var users = [];
+								var maxCount = 0;
+
+								querySnapshot.forEach((doc) => {
+									users.push([[doc.data().username, doc.data().simpIdolName, doc.data().simpImageUrl, doc.data().simpCount]]);
+
+									maxCount = Math.max(maxCount, doc.data().simpCount);
+								});
+
+								users.sort((u1, u2) => u2[0][3] - u1[0][3]);
+
+								const canvasHeight = 50 + 50 * users.length;
+
+								const canvas = createCanvas(500, canvasHeight);
+								const ctx = canvas.getContext('2d');
+
+								ctx.strokeStyle = "#ffffff";
+								ctx.fillStyle = "#ffffff";
+
+								ctx.font = '30px Quicksand';
+
+								ctx.fillText('Simp Leaderboard', 30, 40);
+
+								ctx.font = '22px Quicksand';
+
+								for (u in users) {
+									const user = users[u][0];
+
+									const text_y = 80 + 45 * u;
+									const count_y = text_y + 10;
+
+									const uPlace = Number(Number(u) + 1);
+									ctx.fillText(`${uPlace}. ${user[0]} - ${user[3]}`, 30, text_y);
+
+									ctx.beginPath();
+									ctx.moveTo(30, count_y);
+									ctx.lineTo(30 + Math.min(user[3] * 500 / maxCount, 440), count_y);
+									ctx.stroke();
+								}
+
+								// console.log(canvas.toDataURL());
+
+								const attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'simp-leaderboard.png');
+
+								msg.channel.send(``, attachment);
+							}).catch((error) => {
+								console.log("Error getting documents: ", error);
+							});
+						}
+
+						return;
+					} else if (args[0] == "buy") {
+						if (!doc.exists) {
+							return msg.reply("Since you have not chosen someone to simp for yet, you cannot buy anything! Please use the !simp command with the following parameters (ignore the <>):\n"
+								+ "`!simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
+						}
+
+						var item = "";
+
+						if (!itemNames.includes(args[1].toLowerCase())) {
+							if (!itemNames.includes(args[1].toLowerCase() + " " + args[2].toLowerCase())) {
+								return msg.reply("Hm, looks like that item doesn't exist! Use !simp shop to see the available items!");
+							} else {
+								item = args[1].toLowerCase() + " " + args[2].toLowerCase();
+							}
+						} else {
+							item = args[1].toLowerCase();
+						}
+
+						var id = itemNames.indexOf(item);
+
+						var needed = items[id][2] - doc.data().simpCount;
+
+						if (needed > 0) {
+							return msg.reply("Sorry, you don't have enough simps to buy this item: you need " + needed.toString() + " more simps! Use the !simp command to get more!");
+						} else {
+							var inventory = doc.data().simpInventory;
+
+							if (!inventory) {
+								inventory = [items[id][0]];
+							} else {
+								inventory.push(items[id][0]);
+							}
+
+							userDoc.update({
+								simpCount: doc.data().simpCount - items[id][2],
+								simpInventory: inventory
+							}).then(() => {
+								msg.channel.send("Hooray! You have bought " + items[id][0] + "!");
+							});
+						}
+					} else if (args.length == 3) {
+						if (args[0] == "update") {
+							switch (args[1].toLowerCase()) {
+								case "idol": case "name": case "idolname":
+									userDoc.update({
+										simpIdolName: args[2].toString()
+									}).then(() => {
+										msg.reply("Idol name updated! Type `!simp stats` to view your new idol profile!");
+									});
+
+									break;
+								case "image": case "url": case "imageurl": case "idolimage": case "idolurl":
+									if (/(https?:\/\/.*\.(?:png|jpg|jpeg))/i.test(args[2])) {
+										userDoc.update({
+											simpImageUrl: args[2].toString()
+										}).then(() => {
+											msg.reply("Idol image updated! Type `!simp stats` to view your new idol profile!");
+										});
+									} else {
+										msg.reply("Please enter a valid PNG, JPG, or JPEG image.");
+									}
+
+									break;
+								case "pronoun":
+									userDoc.update({
+										simpPronoun: args[2].toString()
+									}).then(() => {
+										msg.reply("Idol pronoun updated!");
+									});
+									break;
+								default:
+									msg.reply("Parameters not recognized. Please run the !simp command with the following parameters to update your bias (ignore the <>):\n"
+										+ "`!simp update <info, either \"name\" or \"image\"> <new value>`");
+
+									break;
+							}
+						}
+
+						return;
+					} else {
+						if (!doc.exists) {
+							if (args.length != 2) {
+								return msg.reply("Since you have not chosen someone to simp for yet, please run the !simp command with the following parameters (ignore the <>):\n"
+									+ "`!simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
+							} else {
+								idolName = args[0];
+								imageUrl = args[1];
+
+								userDoc.set({
+									id: msg.author.id,
+									username: msg.author.username,
+									simpIdolName: idolName,
+									simpImageUrl: imageUrl,
+									simpCount: 0
+								});
+							}
+						} else {
+							idolName = doc.data().simpIdolName;
+							imageUrl = doc.data().simpImageUrl;
+							simpCount = doc.data().simpCount + 1;
+							pronoun = doc.data().simpPronoun || "they";
+
+							userDoc.update({
+								simpCount: simpCount
+							});
+						}
+
+						const simpEmbed = {
+							color: 0xd9598c,
+							title: "Ha, look at this simp!",
+							thumbnail: {
+								url: imageUrl,
+							},
+							fields: [
+								{
+									name: "Idol Name",
+									value: idolName,
+									inline: true
+								},
+								{
+									name: "Simp Count",
+									value: simpCount,
+									inline: true
+								},
+								{
+									name: "Status",
+									value: simpStatus(simpCount, msg.author.username, pronoun),
+									inline: true
+								}
+							]
+						};
+
+						msg.channel.send({ embed: simpEmbed });
+					}
+				}).catch(function (err) {
+					console.error(err);
+
+					msg.reply("Sorry, an error occurred! Try again later and DM Rasmit#3525 if the error persists!");
+				});
+				break;
+		}
 	}
 });
 
