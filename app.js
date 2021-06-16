@@ -9,7 +9,6 @@ const port = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-const cron = require('node-cron');
 const { createCanvas, loadImage } = require('canvas');
 
 const firebase = require("firebase");
@@ -84,10 +83,6 @@ const helpEmbed = {
 		{
 			name: "jyp about",
 			value: "Sends information about JYP Bot"
-		},
-		{
-			name: "jyp message <message>",
-			value: "Write a question or suggestion to the developer by replacing <message> with your message (you don't need the `<>`, your entire message is sent to a log)"
 		},
 		{
 			name: "jyp invite",
@@ -168,11 +163,7 @@ client.on("message", msg => {
 
 	const lmsg = msg.content.toLowerCase().toString();
 
-	if (lmsg.includes("jyp suggest")) {
-		client.users.cache.get("377934017548386307").send("Message\nSender: <@" + msg.author.id + ">\nChannel: <#" + msg.channel.id + ">\nContent:```\n" + msg.content + "\n```);
-		
-		msg.channel.send("Suggestion sent!");
-	} else if ((lmsg.includes("hey ") || lmsg.includes("hi ")) && lmsg.includes("jyp")) {
+	if ((lmsg.includes("hey ") || lmsg.includes("hi ")) && lmsg.includes("jyp")) {
 		msg.channel.send("hey " + msg.author.username);
 	} else if (lmsg.includes("ily") && lmsg.includes("jyp")) {
 		msg.channel.send("ily " + msg.author.username, { files: ["jypily.png"] });
