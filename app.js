@@ -7,9 +7,9 @@ const app = express();
 const path = require("path");
 const port = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname, 'public')));
-
 const { createCanvas, loadImage } = require('canvas');
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 const firebase = require("firebase");
 
@@ -19,7 +19,7 @@ function simpStatus(simpCount, name, pronoun) {
 	} else if (simpCount < 10) {
 		return "Welcome to the world of simping! You still have a long way to go before you achieve anything, though.";
 	} else if (simpCount < 50) {
-		return "You're not joking around, and your bias is starting to notice you!";
+		return "You're not joking around, and your idol is starting to notice you!";
 	} else if (simpCount < 75) {
 		if (pronoun == "he") {
 			return "Oh, look! He's walking over to you. Well, I'll leave you two to it now, have fun!";
@@ -36,11 +36,11 @@ function simpStatus(simpCount, name, pronoun) {
 		return "\"Have you seen the new movie that came out? Uh, wanna go watch it together maybe?\"";
 	} else if (simpCount < 1000) {
 		if (pronoun == "he") {
-			return "\"Noona, I got you tickets to my concert! Won't you come watch me perform on stage?\"";
+			return "\"" + name + " noona, I got you tickets to my concert! Won't you come watch me perform on stage?\"";
 		} else if (pronoun == "she") {
-			return "\"Oppa, I got you tickets to my concert! Won't you come watch me perform on stage?\"";
+			return "\"" + name + " Oppa, I got you tickets to my concert! Won't you come watch me perform on stage?\"";
 		} else {
-			return "\"Hey, I got you tickets to my concert! Won't you come watch me perform on stage?\"";
+			return "\"Hey " + name + ", I got you tickets to my concert! Won't you come watch me perform on stage?\"";
 		}
 	} else if (simpCount < 2500) {
 		return "\"Uh oh, people found out we're dating!\"";
@@ -49,9 +49,9 @@ function simpStatus(simpCount, name, pronoun) {
 	} else if (simpCount < 7500) {
 		return "\"It's summer! Wanna go to the beach together?\"";
 	} else if (simpCount < 10000) {
-		return "\"W-W-Will you marry me?\"";
-	} else {
-		return "GG WP. You died from simpomania.";
+		return "\"" + name + "- W-W-Will you marry me?\"";
+	} else  {
+		return "RIP " + name + "\n?-2021\nDied from simpomania.";
 	}
 }
 
@@ -62,13 +62,11 @@ firebase.initializeApp(firebaseConfig);
 var admin = require("firebase-admin");
 var serviceAccount = require("./firebase-admin-key.json");
 
-admin.initializeApp({
-	credential: admin.credential.cert(serviceAccount),
-	databaseURL: "https://firebase-project.firebaseio.com"
-});
+admin.initializeApp(firebaseAdminConfig);
 
 let db = admin.firestore();
 
+/////
 const helpEmbed = {
 	color: 0x019be7,
 	title: "JYP Commands",
@@ -83,6 +81,10 @@ const helpEmbed = {
 		{
 			name: "jyp about",
 			value: "Sends information about JYP Bot"
+		},
+		{
+			name: "jyp changelog",
+			value: "Sends information about latest update"
 		},
 		{
 			name: "jyp invite",
@@ -112,7 +114,7 @@ const aboutEmbed = {
 	fields: [
 		{
 			name: "Who?",
-			value: "JYP Bot was made by Rasmit#3525, who also works on other bots and applications: https://rasmit.web.app.",
+			value: "JYP Bot was made by Rasmit#3525, who also works on other bots and applications which you can see here: https://rasmit.web.app.",
 			inline: true
 		},
 		{
@@ -136,23 +138,44 @@ const aboutEmbed = {
 			inline: true
 		},
 		{
-			name: "Why?",
-			value: "While memeing around with some people about JYP, we came up with the silly idea of a JYP Discord bot, and now here it is!",
-			inline: true
-		},
-		{
 			name: "Can I help?",
-			value: "You can make suggestions, open a pull request on the GitHub repo, or you can help the bot grow by adding it to more servers!\n\nEven better, you can use the bot properly and make sure not to break it so that the bot doesn't crash and other users don't lose time with JYP! :)",
+			value: "You can fork and contribute code and then open a pull request on the GitHub repo or you can help the bot grow by adding it to more servers!",
 			inline: false
 		},
 	]
 };
 
+const changelogEmbed = {
+	color: 0x019be7,
+	title: "JYP Bot Changelog",
+	description: "Latest Update - 210620 @ 11:49 PM EST",
+	fields: [
+		{
+			name: "Update 210617:",
+			value: `➟ Added changelog command\n\n` +
+					`➟ Added bot status as "Listening to Alcohol-Free"\n\n` +
+					`➟ Fixed error where user can simp without having an idol if database has old records\n\n` +
+					`➟ Removed Regex check for .png/.jpg/.jpeg to allow a wider variety of iamge formats and URLs` +
+					`➟ Fixed typo in Simp-Mart description for Chocolate\n\n`,
+			inline: true
+		},
+		{
+			name: "Update 210620:",
+			value: `➟ Added Attraction to simp stats, taking into account items (price-unweighted)\n\n` +
+					`➟ Added "Latest Update" timestamp to changelog embed\n\n` +
+					`➟ Removed image thumbnail from changelog embed to save space\n\n` +
+					`➟ Fixed prefix in simp command messages from \`!\` to \`jyp\`\n\n` +
+					`➟ Fixed error where new users cannot start simping\n\n`,
+			inline: true
+		},
+	]
+}
+
 client.on("ready", function () {
-	client.user.setActivity("Alcohol-Free", { type: "Playing" });
+	client.user.setPresence({ activity: { name: "Alcohol-Free", type: "LISTENING" } });
 });
 
-client.login(botToken).then(() => {});
+client.login(botToken).then(function () { });
 
 client.on("message", msg => {
 	if (msg.author.id == client.user.id) {
@@ -210,9 +233,12 @@ client.on("message", msg => {
 			case "about":
 				msg.channel.send({ embed: aboutEmbed })
 				break;
+			case "changelog":
+				msg.channel.send({ embed: changelogEmbed })
+				break;
 			case "invite":
 				msg.channel.send("Add JYP Bot to your server using this invite link:");
-				msg.channel.send("https://discord.com/api/oauth2/authorize?client_id=852575304361967616&permissions=8&scope=bot");
+				msg.channel.send(`https://discord.com/api/oauth2/authorize?client_id=852575304361967616&permissions=8&scope=bot`);
 				break;
 
 			// Fun commands
@@ -225,7 +251,7 @@ client.on("message", msg => {
 				const userDoc = db.collection('users').doc(msg.author.id);
 
 				const items = [
-					["Chocolate", "I'm sure your they'll absolutely love some yummy chocolate!", 5],
+					["Chocolate", "I'm sure they'll absolutely love some yummy chocolate!", 5],
 					["Roses", "Buy them a bouquet of roses to make them fall in love with you!", 10],
 					["Ice Cream", "Let them know how sweet they are by giving them some sweet ice cream!", 25],
 					["Perfume", "Get yourself some fresh perfume to smell nice in front of them.", 50],
@@ -241,23 +267,25 @@ client.on("message", msg => {
 					var imageUrl = ""
 					var simpCount = 0;
 					var pronoun = "they";
+					var inventory;
 
 					if (args.length == 1) {
 						if (args[0] == "stats") {
 							if (!doc.exists) {
-								return msg.reply("You have not simped for anyone yet! To begin the simping journey, run the !simp command with the following parameters (ignore the <>):\n" +
-									"`!simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
+								return msg.reply("You have not simped for anyone yet! To begin the simping journey, run the jyp simp command with the following parameters (ignore the <>):\n" +
+									"`jyp simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
 							} else {
 								idolName = doc.data().simpIdolName || "";
 
 								if (idolName == "") {
-									return msg.reply("You have not simped for anyone yet! To begin the simping journey, run the !simp command with the following parameters (ignore the <>):\n" +
-										"`!simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
+									return msg.reply("You have not simped for anyone yet! To begin the simping journey, run the jyp simp command with the following parameters (ignore the <>):\n" +
+										"`jyp simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
 								}
 
 								imageUrl = doc.data().simpImageUrl || "";
 								simpCount = doc.data().simpCount || 0;
 								pronoun = doc.data().simpPronoun || "they";
+								inventory = doc.data().simpInventory || [];
 
 								const simpEmbed = {
 									color: 0xd9598c,
@@ -274,6 +302,11 @@ client.on("message", msg => {
 										{
 											name: "Simp Count",
 											value: simpCount,
+											inline: true
+										},
+										{
+											name: "Attraction",
+											value: `${(simpCount / 10000 * inventory.length).toPrecision(2)}/100`,
 											inline: true
 										},
 										{
@@ -305,7 +338,7 @@ client.on("message", msg => {
 							var inventory = doc.data().simpInventory;
 
 							if (!inventory) {
-								msg.channel.send("Sorry, you don't own anything! Use `!simp shop` to see what you can buy and `!simp buy` to buy an item!");
+								msg.channel.send("Sorry, you don't own anything! Use `jyp simp shop` to see what you can buy and `jyp simp buy` to buy an item!");
 							} else {
 								msg.channel.send("Your Inventory: " + inventory.join(", "));
 							}
@@ -351,8 +384,6 @@ client.on("message", msg => {
 									ctx.stroke();
 								}
 
-								// console.log(canvas.toDataURL());
-
 								const attachment = new Discord.MessageAttachment(canvas.toBuffer(), 'simp-leaderboard.png');
 
 								msg.channel.send(``, attachment);
@@ -364,15 +395,15 @@ client.on("message", msg => {
 						return;
 					} else if (args[0] == "buy") {
 						if (!doc.exists) {
-							return msg.reply("Since you have not chosen someone to simp for yet, you cannot buy anything! Please use the !simp command with the following parameters (ignore the <>):\n"
-								+ "`!simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
+							return msg.reply("Since you have not chosen someone to simp for yet, you cannot buy anything! Please use the jyp simp command with the following parameters (ignore the <>):\n"
+								+ "`jyp simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
 						}
 
 						var item = "";
 
 						if (!itemNames.includes(args[1].toLowerCase())) {
 							if (!itemNames.includes(args[1].toLowerCase() + " " + args[2].toLowerCase())) {
-								return msg.reply("Hm, looks like that item doesn't exist! Use !simp shop to see the available items!");
+								return msg.reply("Hm, looks like that item doesn't exist! Use jyp simp shop to see the available items!");
 							} else {
 								item = args[1].toLowerCase() + " " + args[2].toLowerCase();
 							}
@@ -385,9 +416,9 @@ client.on("message", msg => {
 						var needed = items[id][2] - doc.data().simpCount;
 
 						if (needed > 0) {
-							return msg.reply("Sorry, you don't have enough simps to buy this item: you need " + needed.toString() + " more simps! Use the !simp command to get more!");
+							return msg.reply("Sorry, you don't have enough simps to buy this item: you need " + needed.toString() + " more simps! Use the jyp simp command to get more!");
 						} else {
-							var inventory = doc.data().simpInventory;
+							inventory = doc.data().simpInventory;
 
 							if (!inventory) {
 								inventory = [items[id][0]];
@@ -409,20 +440,16 @@ client.on("message", msg => {
 									userDoc.update({
 										simpIdolName: args[2].toString()
 									}).then(() => {
-										msg.reply("Idol name updated! Type `!simp stats` to view your new idol profile!");
+										msg.reply("Idol name updated! Type `jyp simp stats` to view your new idol profile!");
 									});
 
 									break;
 								case "image": case "url": case "imageurl": case "idolimage": case "idolurl":
-									if (/(https?:\/\/.*\.(?:png|jpg|jpeg))/i.test(args[2])) {
-										userDoc.update({
-											simpImageUrl: args[2].toString()
-										}).then(() => {
-											msg.reply("Idol image updated! Type `!simp stats` to view your new idol profile!");
-										});
-									} else {
-										msg.reply("Please enter a valid PNG, JPG, or JPEG image.");
-									}
+									userDoc.update({
+										simpImageUrl: args[2].toString()
+									}).then(() => {
+										msg.reply("Idol image updated! Type `jyp simp stats` to view your new idol profile!");
+									});
 
 									break;
 								case "pronoun":
@@ -431,10 +458,11 @@ client.on("message", msg => {
 									}).then(() => {
 										msg.reply("Idol pronoun updated!");
 									});
+
 									break;
 								default:
-									msg.reply("Parameters not recognized. Please run the !simp command with the following parameters to update your bias (ignore the <>):\n"
-										+ "`!simp update <info, either \"name\" or \"image\"> <new value>`");
+									msg.reply("Parameters not recognized. Please run the jyp simp command with the following parameters to update your idol (ignore the <>):\n"
+										+ "`jyp simp update <info, either \"name\" or \"image\"> <new value>`");
 
 									break;
 							}
@@ -444,11 +472,12 @@ client.on("message", msg => {
 					} else {
 						if (!doc.exists) {
 							if (args.length != 2) {
-								return msg.reply("Since you have not chosen someone to simp for yet, please run the !simp command with the following parameters (ignore the <>):\n"
-									+ "`!simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
+								return msg.reply("Since you have not chosen someone to simp for yet, please run the jyp simp command with the following parameters (ignore the <>):\n"
+									+ "`jyp simp <idol name (one word only)> <image url (png, jpg, or jpeg)>`");
 							} else {
 								idolName = args[0];
 								imageUrl = args[1];
+								inventory = [];
 
 								userDoc.set({
 									id: msg.author.id,
@@ -459,10 +488,16 @@ client.on("message", msg => {
 								});
 							}
 						} else {
-							idolName = doc.data().simpIdolName;
+							idolName = doc.data().simpIdolName || "";
+
+							if (idolName == "") {
+								return msg.reply("Since your simp data has been reset, please use jyp simp update to add a new idol and image!");
+							}
+
 							imageUrl = doc.data().simpImageUrl;
 							simpCount = doc.data().simpCount + 1;
 							pronoun = doc.data().simpPronoun || "they";
+							inventory = doc.data().simpInventory || [];
 
 							userDoc.update({
 								simpCount: simpCount
@@ -484,6 +519,11 @@ client.on("message", msg => {
 								{
 									name: "Simp Count",
 									value: simpCount,
+									inline: true
+								},
+								{
+									name: "Attraction",
+									value: `${(simpCount / 10000 * inventory.length).toPrecision(2)}/100`,
 									inline: true
 								},
 								{
